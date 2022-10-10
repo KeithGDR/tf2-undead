@@ -11,6 +11,10 @@
 
 #define EF_NODRAW 0x020
 
+#define SENTRYGUN_EYE_OFFSET_LEVEL_1    32.0
+#define SENTRYGUN_EYE_OFFSET_LEVEL_2    40.0
+#define SENTRYGUN_EYE_OFFSET_LEVEL_3    46.0
+
 #define PHASE_HIBERNATION 0
 #define PHASE_STARTING 1
 #define PHASE_WAITING 2
@@ -2925,7 +2929,7 @@ public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadca
 				
 				char sBuffer[256];
 				FormatEx(sBuffer, sizeof(sBuffer), "Revive %N - Stand Here", client);
-				TF2_CreateAnnotationToAll(vecOrigin, sBuffer, 10.0);
+				TF2_CreateAnnotationToAll2(vecOrigin, sBuffer, 10.0);
 
 				StopTimer(g_Player[client].revivetimer);
 
@@ -2992,7 +2996,7 @@ public Action Timer_DisableMarker(Handle timer, DataPack pack)
 		g_Player[client].revivetimer = null;
 }
 
-void TF2_CreateAnnotationToAll(float origin[3], const char[] text, float lifetime = 10.0, const char[] sound = "vo/null.wav")
+void TF2_CreateAnnotationToAll2(float origin[3], const char[] text, float lifetime = 10.0, const char[] sound = "vo/null.wav")
 {
 	origin[2] += 50.0;
 
@@ -5217,7 +5221,7 @@ public Action Listener_VoiceMenu(int client, const char[] command, int argc)
 
 			char sAnno[64];
 			FormatEx(sAnno, sizeof(sAnno), "%s Active", sBuilding);
-			TF2_CreateAnnotationToAll(origin, sAnno, StringToFloat(sDuration));
+			TF2_CreateAnnotationToAll2(origin, sAnno, StringToFloat(sDuration));
 
 			if (IsPlayerIndex(client))
 				g_Player[client].AddStat(STAT_BUILDINGS, 1);
@@ -5249,7 +5253,7 @@ public Action Listener_VoiceMenu(int client, const char[] command, int argc)
 
 			char sAnno[64];
 			FormatEx(sAnno, sizeof(sAnno), "Door Opened");
-			TF2_CreateAnnotationToAll(origin, sAnno, 5.0);
+			TF2_CreateAnnotationToAll2(origin, sAnno, 5.0);
 
 			if (IsPlayerIndex(client))
 				g_Player[client].AddStat(STAT_DOORS, 1);
@@ -6139,7 +6143,7 @@ public Action Timer_MysteryBox(Handle timer, DataPack pack)
 			origin2[0] = origin[0];
 			origin2[1] = origin[1];
 			origin2[2] = origin[2];
-			TF2_CreateAnnotationToAll(origin2, "Weapon Available", 10.0);
+			TF2_CreateAnnotationToAll2(origin2, "Weapon Available", 10.0);
 		}
 		
 		phase = 1;
@@ -8467,25 +8471,26 @@ stock float[] GetAbsOrigin(int client)
 
 stock float[] EyePosition(int ent)
 {
-    float v[3]; v = GetAbsOrigin(ent);
-    
-    if (HasEntProp(ent, Prop_Send, "m_vDefaultEyeOffset"))
-    {
-        switch(m_iUpgradeLevel)
-        {
-            case 1: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_1;
-            case 2: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_2;
-            case 3: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_3;
-        }
-    }
-    else
-    {
-        float max[3];
-        GetEntPropVector(ent, Prop_Data, "m_vecMaxs", max);
-        v[2] += max[2];
-    }
+	float v[3]; v = GetAbsOrigin(ent);
+	int m_iUpgradeLevel = GetEntProp(ent, Prop_Send, "m_iUpgradeLevel");
 
-    return v;
+	if (HasEntProp(ent, Prop_Send, "m_vDefaultEyeOffset"))
+	{
+		switch(m_iUpgradeLevel)
+		{
+			case 1: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_1;
+			case 2: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_2;
+			case 3: v[2] += SENTRYGUN_EYE_OFFSET_LEVEL_3;
+		}
+	}
+	else
+	{
+		float max[3];
+		GetEntPropVector(ent, Prop_Data, "m_vecMaxs", max);
+		v[2] += max[2];
+	}
+
+	return v;
 }
 
 stock float[] WorldSpaceCenter(int ent)
@@ -8541,7 +8546,7 @@ public Action Timer_InitPackaPunch(Handle timer, DataPack pack)
 
 	if (ticks >= 5.0 && phase == PUNCH_PHASE_UPGRADING)
 	{
-		TF2_CreateAnnotationToAll(boxorigin, "Upgraded weapon is ready...", 10.0);
+		TF2_CreateAnnotationToAll2(boxorigin, "Upgraded weapon is ready...", 10.0);
 		EmitSoundToAll("coach/coach_attack_here.wav", weapon);
 
 		phase = PUNCH_PHASE_WAITING;

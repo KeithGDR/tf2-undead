@@ -468,11 +468,11 @@ stock bool CheckAdminFlagsByString(int client, const char[] flags)
 
 	if (admin != INVALID_ADMIN_ID)
 	{
-		int count; int found; int flags = ReadFlagString(flags);
+		int count; int found; int flagbits = ReadFlagString(flags);
 
 		for (int i = 0; i <= 20; i++)
 		{
-			if (flags & (1 << i))
+			if (flagbits & (1 << i))
 			{
 				count++;
 
@@ -672,12 +672,12 @@ stock bool ClearTrieSafe(StringMap map)
 	return true;
 }
 
-stock void SteamWorks_SetHTTPRequestGetOrPostParameterInt(Handle hHandle, const char[] sName, int value)
-{
-	char sValue[256];
-	IntToString(value, sValue, sizeof(sValue));
-	SteamWorks_SetHTTPRequestGetOrPostParameter(hHandle, sName, sValue);
-}
+// stock void SteamWorks_SetHTTPRequestGetOrPostParameterInt(Handle hHandle, const char[] sName, int value)
+// {
+// 	char sValue[256];
+// 	IntToString(value, sValue, sizeof(sValue));
+// 	SteamWorks_SetHTTPRequestGetOrPostParameter(hHandle, sName, sValue);
+// }
 
 stock float CalculateFloat(int value1, int value2, float fMultiplier = 0.0)
 {
@@ -2089,7 +2089,7 @@ stock void BlinkClient(int client, float distance = 35.0)
 	GetClientAbsOrigin(client, vecOrigin);
 
 	float vecPosition[3];
-	GetClientCrosshairOrigin(client, vecPosition, true, distance);
+	GetClientLookOrigin(client, vecPosition, true, distance);
 	
 	TeleportEntity(client, vecPosition, NULL_VECTOR, NULL_VECTOR);
 	
@@ -2776,12 +2776,12 @@ stock void GetAbsBoundingBox(int ent, float mins[3], float maxs[3], bool half = 
         maxs[2] = mins[2];
 }
 
-stock void GetWorldMins(float[3] mins)
+stock void GetWorldMins(float mins[3])
 {
 	GetEntPropVector(0, Prop_Data, "m_WorldMins", mins);
 }
 
-stock void GetWorldMaxs(float[3] maxs)
+stock void GetWorldMaxs(float maxs[3])
 {
 	GetEntPropVector(0, Prop_Data, "m_WorldMaxs", maxs);
 }
@@ -3028,10 +3028,11 @@ stock int GetEntityOwner(int entity)
 	return GetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity");
 }
 
-stock void SetEntityOwner(int entity, int value)
-{
-	SetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity", value);
-}
+// Deprecated as of SM 1.11
+// stock void SetEntityOwner(int entity, int value)
+// {
+// 	SetEntPropEnt(entity, Prop_Data, "m_hOwnerEntity", value);
+// }
 
 stock int GetEntityThrower(int entity)
 {
@@ -3049,57 +3050,57 @@ stock void ClearEntityParent(int entity)
 	AcceptEntityInput(entity, "ClearParent");
 }
 
-stock void GetEntityOrigin(int entity, float[3] origin)
+stock void GetEntityOrigin(int entity, float origin[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", origin);
 }
 
-stock void GetEntityAbsOrigin(int entity, float[3] origin)
+stock void GetEntityAbsOrigin(int entity, float origin[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_vecAbsOrigin", origin);
 }
 
-stock void GetEntityAngles(int entity, float[3] angles)
+stock void GetEntityAngles(int entity, float angles[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_angRotation", angles);
 }
 
-stock void SetEntityAngle(int entity, float[3] angles)
+stock void SetEntityAngle(int entity, float angles[3])
 {
 	SetEntPropVector(entity, Prop_Send, "m_angRotation", angles);
 }
 
-stock void GetEntityAbsAngles(int entity, float[3] angles)
+stock void GetEntityAbsAngles(int entity, float angles[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_angAbsRotation", angles);
 }
 
-stock void GetEntityVelocity(int entity, float[3] velocity)
+stock void GetEntityVelocity(int entity, float velocity[3])
 {
 	GetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
 }
 
-stock void SetEntityVelocity(int entity, float[3] velocity)
+stock void SetEntityVelocity(int entity, float velocity[3])
 {
 	SetEntPropVector(entity, Prop_Data, "m_vecVelocity", velocity);
 }
 
-stock void GetEntityAbsVelocity(int entity, float[3] velocity)
+stock void GetEntityAbsVelocity(int entity, float velocity[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_vecAbsVelocity", velocity);
 }
 
-stock void SetEntityAbsVelocity(int entity, float[3] velocity)
+stock void SetEntityAbsVelocity(int entity, float velocity[3])
 {
 	SetEntPropVector(entity, Prop_Send, "m_vecAbsVelocity", velocity);
 }
 
-stock void GetEntityMins(int entity, float[3] mins)
+stock void GetEntityMins(int entity, float mins[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_vecMins", mins);
 }
 
-stock void GetEntityMaxs(int entity, float[3] maxs)
+stock void GetEntityMaxs(int entity, float maxs[3])
 {
 	GetEntPropVector(entity, Prop_Send, "m_vecMaxs", maxs);
 }
@@ -3189,12 +3190,13 @@ stock void SetEntityWaterlevel(int entity, int value)
 	SetEntProp(entity, Prop_Data, "m_nWaterLevel", value);
 }
 
-stock bool DispatchKeyValueInt(int entity, const char[] keyName, const int value)
-{
-	char sValue[64];
-	IntToString(value, sValue, sizeof(sValue));
-	return DispatchKeyValue(entity, keyName, sValue);
-}
+// Deprecated as of SM 1.11
+// stock bool DispatchKeyValueInt(int entity, const char[] keyName, const int value)
+// {
+// 	char sValue[64];
+// 	IntToString(value, sValue, sizeof(sValue));
+// 	return DispatchKeyValue(entity, keyName, sValue);
+// }
 
 stock bool GetEntPropBool(int entity, PropType type, const char[] prop, int size = 4, int element = 0)
 {
@@ -3775,10 +3777,11 @@ stock CollisionGroup GetEntityCollisionGroup(int entity)
  * @param group		CollisionGroup value.
  * @error			Invalid entity index, or lack of mod compliance.
  */
-stock void SetEntityCollisionGroup(int entity, CollisionGroup group)
-{
-	SetEntProp(entity, Prop_Data, "m_CollisionGroup", group);
-}
+// Deprecated as of SM 1.11
+// stock void SetEntityCollisionGroup(int entity, CollisionGroup group)
+// {
+// 	SetEntProp(entity, Prop_Data, "m_CollisionGroup", group);
+// }
 
 /*---------------------------------------------------------*/
 //COMMANDS
@@ -3788,19 +3791,21 @@ stock void GetCommandName(char[] buffer, int size)
 	GetCmdArg(0, buffer, size);
 }
 
-stock int GetCmdArgInt(int argnum)
-{
-	char sBuffer[64];
-	GetCmdArg(argnum, sBuffer, sizeof(sBuffer));
-	return StringToInt(sBuffer);
-}
+// Deprecated as of SM 1.11
+// stock int GetCmdArgInt(int argnum)
+// {
+// 	char sBuffer[64];
+// 	GetCmdArg(argnum, sBuffer, sizeof(sBuffer));
+// 	return StringToInt(sBuffer);
+// }
 
-stock float GetCmdArgFloat(int argnum)
-{
-	char sBuffer[64];
-	GetCmdArg(argnum, sBuffer, sizeof(sBuffer));
-	return StringToFloat(sBuffer);
-}
+// Deprecated as of SM 1.11
+// stock float GetCmdArgFloat(int argnum)
+// {
+// 	char sBuffer[64];
+// 	GetCmdArg(argnum, sBuffer, sizeof(sBuffer));
+// 	return StringToFloat(sBuffer);
+// }
 
 stock bool GetCmdArgBool(int argnum)
 {
@@ -3826,7 +3831,7 @@ stock int GetCmdArgTargetEx(int client, int argnum, bool nobots = false, bool im
 /*---------------------------------------------------------*/
 //DATAPACKS
 
-stock void WritePackVector(DataPack pack, float[3] vector)
+stock void WritePackVector(DataPack pack, float vector[3])
 {
 	pack.WriteFloat(vector[0]);
 	pack.WriteFloat(vector[1]);
@@ -4928,14 +4933,14 @@ stock bool AddMenuItemFormat(Menu menu, const char[] info, int style = ITEMDRAW_
 *
 *	return	True if found and removed, false otherwise.
 **/
-stock bool RemoveMenuItemByInfo(Menu menu, const char[] info)
+stock bool RemoveMenuItemByInfo(Menu menu, const char[] info_check, bool defaultvalue)
 {
-	if (menu == null || strlen(info) == 0)
+	if (menu == null || strlen(info_check) == 0)
 		return defaultvalue;
 	
 	char info[1024];
 	for (int i = 0; i < menu.ItemCount; i++)
-		if (menu.GetItem(i, info, sizeof(info)) && StrEqual(info, info, false))
+		if (menu.GetItem(i, info, sizeof(info)) && StrEqual(info, info_check, false))
 			return menu.RemoveItem(i);
 	
 	return false;
@@ -4949,7 +4954,7 @@ stock bool RemoveMenuItemByInfo(Menu menu, const char[] info)
 *
 *	return	True if found and removed, false otherwise.
 **/
-stock bool RemoveMenuItemByName(Menu menu, const char[] name)
+stock bool RemoveMenuItemByName(Menu menu, const char[] name, bool defaultvalue)
 {
 	if (menu == null || strlen(name) == 0)
 		return defaultvalue;
