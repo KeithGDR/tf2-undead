@@ -2376,7 +2376,7 @@ public void OnMapEnd()
 	StopTimer(g_WaveTimer);
 
 	g_Match.pausetimer = false;
-	g_Match.UnpauseZombies();
+	g_Match.pausezombies = false;
 
 	g_Match.secret_door_unlocked = false;
 	g_Match.bomb_heads = false;
@@ -2610,7 +2610,7 @@ public Action Timer_RoundTimer(Handle timer)
 
 			int entity = -1;
 			while ((entity = FindEntityByClassname(entity, "*")) != -1)
-				if (IsValidEntity(entity))
+				if (IsValidEntity(entity) && entity > 0)
 					g_RebuildDelay[entity] = GetGameTime();
 
 			CreateTF2Timer(g_Match.roundtime);
@@ -3590,8 +3590,8 @@ CBaseNPC SpawnZombie(float origin[3], int special = -1, bool limitcheck = true)
 	
 	SetEntProp(npcEntity.iEnt, Prop_Send, "m_nSkin", ((class == 8) ? 22 : 4));
 	SetEntProp(npcEntity.iEnt, Prop_Send, "m_iTeamNum", team);
-	SetEntProp(npcEntity.iEnt, Prop_Send, "m_iMaxHealth", health);
-	SetEntProp(npcEntity.iEnt, Prop_Send, "m_iHealth", health);
+	SetEntProp(npcEntity.iEnt, Prop_Data, "m_iMaxHealth", health);
+	SetEntProp(npcEntity.iEnt, Prop_Data, "m_iHealth", health);
 	
 	npc.flStepSize = convar_Zombies_StepSize.FloatValue * ((size != -1.0) ? size : 1.0);
 	npc.flGravity = convar_Zombies_Gravity.FloatValue;
@@ -3808,7 +3808,7 @@ public Action Timer_ZombieTicks(Handle timer)
 	for (int i = 0; i < MAX_NPCS; i++)
 	{
 		npc = g_Zombies[i].npc;
-
+		
 		if (npc == INVALID_NPC || !TheNPCs.IsValidNPC(npc))
 			continue;
 		
@@ -3821,8 +3821,8 @@ public Action Timer_ZombieTicks(Handle timer)
 
 		if (g_GlobalTarget != -1)
 			target = g_GlobalTarget;
-
-		if (target > 0 && target <= MaxClients && IsClientConnected(target) && IsClientInGame(target) && IsPlayerAlive(target) && GetClientTeam(target) >= 2 && GetClientTeam(target) != GetEntProp(target, Prop_Send, "m_iTeamNum"))
+		
+		if (target > 0 && target <= MaxClients && IsClientConnected(target) && IsClientInGame(target) && IsPlayerAlive(target) && GetClientTeam(target) >= 2 && GetClientTeam(target) != GetEntProp(entity, Prop_Send, "m_iTeamNum"))
 		{
 			float endPos[3];
 			GetClientAbsOrigin(target, endPos);
@@ -3857,7 +3857,7 @@ public void OnZombieThink(int entity)
 	GetEntPropVector(entity, Prop_Data, "m_angAbsRotation", vecNPCAng);
 	
 	float time = GetGameTime();
-	if (!g_Match.pausezombies && g_Zombies[npc.Index].sounds != -1.0 && g_Zombies[npc.Index].sounds <= time && GetEntProp(entity, Prop_Send, "m_iHealth") > 0)
+	if (!g_Match.pausezombies && g_Zombies[npc.Index].sounds != -1.0 && g_Zombies[npc.Index].sounds <= time && GetEntProp(entity, Prop_Data, "m_iHealth") > 0)
 	{
 		PlayZombieSound(entity);
 		g_Zombies[npc.Index].sounds = GetZombieSoundDuration(entity);
@@ -3943,7 +3943,7 @@ public void OnZombieThink(int entity)
 			if (vecNPCPos[2] > targetorigin[2] && (vecNPCPos[2] - targetorigin[2]) > 100.0)
 				continue;
 
-			if (GetVectorDistance(vecNPCPos, targetorigin) >= 500.0 || GetEntProp(entity2, Prop_Send, "m_iHealth") < 1)
+			if (GetVectorDistance(vecNPCPos, targetorigin) >= 500.0 || GetEntProp(entity2, Prop_Data, "m_iHealth") < 1)
 			{
 				// if (g_HealBeam[entity][entity2][0] > 0)
 				// {
@@ -3960,8 +3960,8 @@ public void OnZombieThink(int entity)
 				continue;
 			}
 			
-			if (GetEntProp(entity2, Prop_Send, "m_iHealth") < GetEntProp(entity2, Prop_Send, "m_iMaxHealth"))
-				SetEntProp(entity2, Prop_Send, "m_iHealth", GetEntProp(entity2, Prop_Send, "m_iHealth") + 1);
+			if (GetEntProp(entity2, Prop_Data, "m_iHealth") < GetEntProp(entity2, Prop_Data, "m_iMaxHealth"))
+				SetEntProp(entity2, Prop_Data, "m_iHealth", GetEntProp(entity2, Prop_Data, "m_iHealth") + 1);
 
 			if (entity != entity2)
 				AttachHealBeam(entity, entity2, "medicgun_beam_red");
@@ -4214,7 +4214,7 @@ public void OnZombieDamagedPost(int victim, int attacker, int inflictor, float d
 	if (IsPlayerIndex(attacker))
 		doublepoints = g_Player[attacker].doublepoints != -1 && g_Player[attacker].doublepoints > GetTime();
 	
-	if (RoundFloat(damage) >= GetEntProp(victim, Prop_Send, "m_iHealth"))
+	if (RoundFloat(damage) >= GetEntProp(victim, Prop_Data, "m_iHealth"))
 	{
 		if (IsPlayerIndex(attacker))
 		{
@@ -7295,7 +7295,7 @@ void OnZombieDeath(int entity, bool powerups = false, bool bomb_heads = false, i
 			g_Zombies[npc.Index].item = -1;
 		}
 
-		if (!noragdoll)
+		if (!noragdoll && IsValidEntity(0))
 		{
 			char sModel[PLATFORM_MAX_PATH];
 			GetEntPropString(entity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
