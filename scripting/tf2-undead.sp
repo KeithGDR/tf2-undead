@@ -7,7 +7,7 @@
 //Defines
 #define PLUGIN_NAME "[TF2] Undead"
 #define PLUGIN_DESCRIPTION "Undead is a gamemode which pits players vs AI and player controlled zombies."
-#define PLUGIN_VERSION "1.0.5"
+#define PLUGIN_VERSION "1.1.0"
 
 #define EF_NODRAW 0x020
 
