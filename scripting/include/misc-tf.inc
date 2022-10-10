@@ -1352,6 +1352,8 @@ stock int TF2_GetSpellUses(int client) {
 	if (IsValidEntity(entity)) {
 		return GetEntProp(entity, Prop_Send, "m_iSpellCharges");
 	}
+	
+	return 0;
 }
 
 /**
@@ -1859,11 +1861,11 @@ stock bool TF2_IsCurrentHealer(int client, int healer) {
 **/
 stock TFTeam TF2_GetTeam(const char[] team) {
 	if (StrEqual(team, "1") || StrEqual(team, "spec", false) || StrEqual(team, "spectate", false) || StrEqual(team, "spectator", false) || StrEqual(team, "spectators", false)) {
-		return TFTeam_Spectator;
+		return view_as<TFTeam>(TFTeam_Spectator);
 	} else if (StrEqual(team, "2") || StrEqual(team, "red", false)) {
-		return TFTeam_Red;
+		return view_as<TFTeam>(TFTeam_Red);
 	} else if (StrEqual(team, "3") || StrEqual(team, "blu", false) || StrEqual(team, "blue", false)) {
-		return TFTeam_Blue;
+		return view_as<TFTeam>(TFTeam_Blue);
 	}
 
 	return TFTeam_Unassigned;
@@ -2521,9 +2523,9 @@ stock void TF2_GetQualityFromID(TF2Quality quality, char[] buffer, int size, boo
 		case TF2Quality_Normal: {
 			strcopy(buffer, size, "normal");
 		}
-		case TF2Quality_Rarity1: {
-			strcopy(buffer, size, "rarity1");
-		}
+		// case TF2Quality_Rarity1: {
+		// 	strcopy(buffer, size, "rarity1");
+		// }
 		case TF2Quality_Genuine: {
 			strcopy(buffer, size, "genuine");
 		}
@@ -2536,9 +2538,9 @@ stock void TF2_GetQualityFromID(TF2Quality quality, char[] buffer, int size, boo
 		case TF2Quality_Rarity3: {
 			strcopy(buffer, size, "rarity3");
 		}
-		case TF2Quality_Rarity4: {
-			strcopy(buffer, size, "rarity4");
-		}
+		// case TF2Quality_Rarity4: {
+		// 	strcopy(buffer, size, "rarity4");
+		// }
 		case TF2Quality_Unusual: {
 			strcopy(buffer, size, "unusual");
 		}

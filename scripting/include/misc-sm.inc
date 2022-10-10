@@ -445,6 +445,8 @@ public Action __Timer_DelayEndBuffer(Handle timer, any userid)
 	int client;
 	if ((client = GetClientOfUserId(userid)) > 0)
 		PrintToConsole(client, "------------------------------------------------------");
+	
+	return Plugin_Continue;
 }
 
 /*
@@ -752,14 +754,35 @@ stock void StripCharactersPost(char[] buffer, int position)
 	buffer[position] = '\0';
 }
 
-stock bool GetStringMinMax(const char[] buffer, any& min, any& max, const char[] splitter = "/", bool clamp = true)
+stock bool GetStringMinMax(const char[] buffer, int &min, int &max, const char[] splitter = "/", bool clamp = true)
 {
 	char sPart[2][12];
 	if (ExplodeString(buffer, splitter, sPart, 2, 12) < 2)
 		return false;
 
-	min = StrContains(sPart[0], ".") != -1 ? StringToFloat(sPart[0]) : StringToInt(sPart[0]);
-	max = StrContains(sPart[1], ".") != -1 ? StringToFloat(sPart[1]) : StringToInt(sPart[1]);
+	min = StringToInt(sPart[0]);
+	max = StringToInt(sPart[1]);
+
+	if (clamp)
+	{
+		if (min > max)
+			min = max;
+
+		if (max < min)
+			max = min;
+	}
+
+	return true;
+}
+
+stock bool GetStringMinMaxFloat(const char[] buffer, float &min, float &max, const char[] splitter = "/", bool clamp = true)
+{
+	char sPart[2][12];
+	if (ExplodeString(buffer, splitter, sPart, 2, 12) < 2)
+		return false;
+
+	min = StringToFloat(sPart[0]);
+	max = StringToFloat(sPart[1]);
 
 	if (clamp)
 	{
@@ -788,7 +811,7 @@ stock bool IsEntityWorld(int index)
 	return index == 0;
 }
 
-stock int GetRandomString(char[] buffer, int size, int length = 32, const char[] chrs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234556789")
+stock void GetRandomString(char[] buffer, int size, int length = 32, const char[] chrs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234556789")
 {
 	int random; int len;
 	size--;
@@ -2186,6 +2209,7 @@ stock void ShowOverlay(int client, const char[] overlay, float duration = 0.0)
 public Action __Timer_ResetOverlay(Handle timer, any data)
 {
 	ShowOverlay(GetClientOfUserId(data), "0", 0.0);
+	return Plugin_Continue;
 }
 
 stock void ClearOverlay(int client)
@@ -2201,7 +2225,7 @@ stock void ClearOverlay(int client)
 
 stock float GetVotePercent(int votes, int totalVotes)
 {
-	return FloatDiv(float(votes), float(totalVotes));
+	return float(votes) / float(totalVotes);
 }
 
 /* Found from the MOTDGD plugin. Though, I did reformat it for the new SourceMod syntax. */
@@ -2385,6 +2409,8 @@ public Action __Timer_DelayClientConcept(Handle timer, DataPack data)
 
 	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client))
 		SpeakResponseConcept(client, sConcept, sContext, sClass);
+	
+	return Plugin_Continue;
 }
 
 stock void SpeakResponseConceptAll(const char[] concept, const char[] context = "", const char[] class = "")
@@ -2422,6 +2448,8 @@ public Action __Timer_DelayAllConcept(Handle timer, DataPack data)
 	data.ReadString(sClass, sizeof(sClass));
 
 	SpeakResponseConceptAll(sConcept, sContext, sClass);
+
+	return Plugin_Continue;
 }
 
 stock void SQL_FetchClientName(int client, Database database, char[] buffer, int size)
@@ -2742,8 +2770,7 @@ stock void CreatePlayerSpray(int client, float origin[3])
 	TE_WriteNum("m_nPlayer", client);
 	TE_SendToAll();
 	
-	if (IsSoundPrecached("player/sprayer.wav"))
-		EmitSoundToAll("player/sprayer.wav", client, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, 0.6);
+	EmitSoundToAll("player/sprayer.wav", client, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, 0.6);
 }
 
 stock void RemovePlayerSpray(int client)
@@ -3117,7 +3144,7 @@ stock bool DisableEntity(int entity)
 
 stock bool IsEntityDisabled(int entity)
 {
-	return GetEntProp(entity, Prop_Data, "m_bDisabled", 1);
+	return GetEntPropBool(entity, Prop_Data, "m_bDisabled", 1);
 }
 
 stock bool EnableEntityMotion(int entity)
@@ -3140,12 +3167,12 @@ stock void SetEntityTakeDamage(int entity, int value = DAMAGE_YES)
 	SetEntProp(entity, Prop_Data, "m_takedamage", value, 1);
 }
 
-stock bool GetEntityHealth(int entity)
+stock int GetEntityHealth(int entity)
 {
 	return GetEntProp(entity, Prop_Data, "m_iHealth");
 }
 
-stock bool GetEntityMaxHealth(int entity)
+stock int GetEntityMaxHealth(int entity)
 {
 	return GetEntProp(entity, Prop_Data, "m_iMaxHealth");
 }
@@ -3160,7 +3187,7 @@ stock void SetEntityMaxSpeed(int entity, float value)
 	SetEntPropFloat(entity, Prop_Data, "m_flMaxspeed", value);
 }
 
-stock bool IsEntityLocked(int entity)
+stock int IsEntityLocked(int entity)
 {
 	return GetEntProp(entity, Prop_Data, "m_bLocked", 1);
 }
@@ -3912,14 +3939,13 @@ stock bool EmitSoundToClientSafe(int client, char sample[PLATFORM_MAX_PATH], int
 	
 	if (StrContains(sample, "sound/") == 0)
 		strcopy(sample, sizeof(sample), sample[6]);
-		
-	if (IsSoundPrecached(sample))
-		EmitSoundToClient(client, sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+	
+	EmitSoundToClient(client, sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
 	
 	return false;
 }
 
-stock bool EmitSoundToClientSafeDelayed(int client, const char[] sample, float delayed = 0.0, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true, float soundtime = 0.0)
+stock void EmitSoundToClientSafeDelayed(int client, const char[] sample, float delayed = 0.0, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true, float soundtime = 0.0)
 {
 	if (delayed < 0.0)
 		delayed = 0.0;
@@ -3976,6 +4002,8 @@ public Action __Timer_PlayClientSound(Handle timer, DataPack data)
 	float soundtime = data.ReadFloat();
 
 	EmitSoundToClientSafe(client, sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+
+	return Plugin_Continue;
 }
 
 stock bool EmitSoundToAllSafe(char sample[PLATFORM_MAX_PATH], int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true, float soundtime = 0.0)
@@ -3985,14 +4013,13 @@ stock bool EmitSoundToAllSafe(char sample[PLATFORM_MAX_PATH], int entity = SOUND
 	
 	if (StrContains(sample, "sound/") == 0)
 		strcopy(sample, sizeof(sample), sample[6]);
-		
-	if (IsSoundPrecached(sample))
-		EmitSoundToAll(sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+	
+	EmitSoundToAll(sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
 	
 	return false;
 }
 
-stock bool EmitSoundToAllSafeDelayed(const char[] sample, float delayed = 0.0, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true, float soundtime = 0.0)
+stock void EmitSoundToAllSafeDelayed(const char[] sample, float delayed = 0.0, int entity = SOUND_FROM_PLAYER, int channel = SNDCHAN_AUTO, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float volume = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, int speakerentity = -1, const float origin[3] = NULL_VECTOR, const float dir[3] = NULL_VECTOR, bool updatePos = true, float soundtime = 0.0)
 {
 	if (delayed < 0.0)
 		delayed = 0.0;
@@ -4046,6 +4073,8 @@ public Action __Timer_PlayAllSound(Handle timer, DataPack data)
 	float soundtime = data.ReadFloat();
 
 	EmitSoundToAllSafe(sample, entity, channel, level, flags, volume, pitch, speakerentity, origin, dir, updatePos, soundtime);
+
+	return Plugin_Continue;
 }
 
 stock bool EmitAmbientSoundSafe(const char[] sample, const float origin[3], int entity = SOUND_FROM_WORLD, int level = SNDLEVEL_NORMAL, int flags = SND_NOFLAGS, float vol = SNDVOL_NORMAL, int pitch = SNDPITCH_NORMAL, float delay = 0.0)
@@ -4058,12 +4087,6 @@ stock bool EmitAmbientSoundSafe(const char[] sample, const float origin[3], int 
 
 	if (GetEngineVersion() == Engine_CSGO)
 		Format(sSound, sizeof(sSound), "*%s", sSound);
-
-	if (IsSoundPrecached(sSound))
-	{
-		LogError("Error playing ambient sound, not precached: %s", sSound);
-		return false;
-	}
 	
 	EmitAmbientSound(sSound, origin, entity, level, flags, vol, pitch, delay);
 	return true;
@@ -4328,7 +4351,7 @@ stock void EquipWeapon(int client, int weapon)
 /*--------------------------------------------------------->*/
 //CONVARS
 
-stock bool SetConVarFlag(ConVar convar, bool add, int flag)
+stock void SetConVarFlag(ConVar convar, bool add, int flag)
 {
 	int flags = convar.Flags;
 	
@@ -4340,7 +4363,7 @@ stock bool SetConVarFlag(ConVar convar, bool add, int flag)
 	convar.Flags = flags;
 }
 
-stock bool SetConVarFlagByName(const char[] name, bool add, int flag)
+stock void SetConVarFlagByName(const char[] name, bool add, int flag)
 {
 	ConVar convar = FindConVar(name);
 	
@@ -5195,6 +5218,8 @@ public int ___MenuHandler_SendConfirmation(Menu menu, MenuAction action, int par
 		case MenuAction_End:
 			delete menu;
 	}
+
+	return 0;
 }
 
 /*--------------------------------------------------------->*/
